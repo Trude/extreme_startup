@@ -58,10 +58,21 @@ Then /^the game master should start sending me question$/ do
   app.players_threads[player_uuid].should be_alive
 end
 
+When /^I withdraw$/ do
+  player_uuid = app.players.keys.first
+  visit "/players/#{player_uuid}"
+  click_link 'Withdraw'
+end
+
 Then /^my name should not be on the leaderboard anymore$/ do
   page.should_not have_content("Jedi masters")
 end
 
 Then /^the game master should not send me anymore questions$/ do
   app.players_threads.should be_empty
+end
+
+Then /^my player page should give a nice error$/ do
+    visit '/players/no-longer-exists'
+    page.should have_content("No player is registered with that id")
 end
