@@ -155,16 +155,25 @@ module ExtremeStartup
     end
 
     post '/players' do
-      player = Player.new(params)
-      scoreboard.new_player(player)
-      players[player.uuid] = player
 
-      player_thread = Thread.new do
-        QuizMaster.new(player, scoreboard, question_factory, game_state).start
+      if params['url'].empty?
+        haml :add_player_error, :locals => { :error => "Please add a URL" }
+      elsif params['url'] !~ /^https?:\/\//
+        haml :add_player_error, :locals => { :error => "Invalid URL (must start with http:// or https://)" }
+      elsif params['url'] =~ /localhost/
+        haml :add_player_error, :locals => { :error => "Invalid URL (use IP address rather than 'localhost')" }
+      else
+        player = Player.new(params)
+        scoreboard.new_player(player)
+        players[player.uuid] = player
+
+        player_thread = Thread.new do
+          QuizMaster.new(player, scoreboard, question_factory, game_state).start
+        end
+        players_threads[player.uuid] = player_thread
+
+        haml :player_added, :locals => { :playerid => player.uuid }
       end
-      players_threads[player.uuid] = player_thread
-
-      haml :player_added, :locals => { :playerid => player.uuid }
     end
 
   private
