@@ -11,7 +11,7 @@ advanced_round = [WebshopQuestion, SquareCubeQuestion]
 hard_round   = [WebshopQuestion] * 2 + [FibonacciQuestion, AdditionMultiplicationQuestion, MultiplicationAdditionQuestion,AdditionAdditionQuestion]
 
 
-WebServer.settings.default_question_delay = 1
+# WebServer.settings.default_question_delay = 1
 WebServer.settings.question_factory = ExtremeStartup::GatedQuestionFactory.new([
   warmup_round,
   simple_round,

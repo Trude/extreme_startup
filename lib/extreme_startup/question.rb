@@ -16,6 +16,7 @@ module ExtremeStartup
 
     def ask(player)
       url = player.url + '?q=' + URI.escape(self.to_s)
+      puts "GET: " + url
       begin
         response = get(url)
         if (response.success?) then
@@ -25,7 +26,7 @@ module ExtremeStartup
         end
       rescue => exception
         puts exception
-        @problem = "no_answer"
+        @problem = "no_server_response"
       end
     end
 
@@ -34,26 +35,12 @@ module ExtremeStartup
     end
 
     def result
-      if @answer && answered_correctly?(@answer)
+      if @answer && self.answered_correctly?(answer)
         "correct"
       elsif @answer
         "wrong"
       else
         @problem
-      end
-    end
-
-    def score
-      case result
-        when "correct"
-          @player.correct_answers(self.class) <= 10 ? points : points/10
-        when "wrong"
-          return penalty*5 if @player.correct_answers(self.class) > 0
-          return penalty   if @player.wrong_answers(self.class) <= 10
-          return penalty/10
-        when "error_response" then -5
-        when "no_answer"     then -20
-        else puts "!!!!! result #{result} in score"
       end
     end
 
@@ -65,14 +52,16 @@ module ExtremeStartup
       end
     end
 
-    def display_result
-      "\tquestion: #{self.to_s}\n\tanswer: #{answer} (expected: #{correct_answer})\n\tresult: #{result}\n\tscore: #{score}"
+    def was_answered_correctly
+      result == "correct"
     end
-    
-    def log_result
-      "|question: #{self.to_s}|answer: #{answer && answer[0..100].gsub("\n", "")}|expected: #{correct_answer}|result: #{result}"
-      rescue => e
-        "error during logging #{e}"
+
+    def was_answered_wrongly
+      result == "wrong"
+    end
+
+    def display_result
+      "\tquestion: #{self.to_s}\n\tanswer: #{answer}\n\tresult: #{result}"
     end
 
     def id
@@ -84,24 +73,19 @@ module ExtremeStartup
     end
 
     def answer=(answer)
-      @answer = answer
-      @player.answers_for_question(self.class, result)
+      @answer = answer.force_encoding("UTF-8")
     end
 
     def answer
-      @answer && @answer.downcase.strip.force_encoding("ASCII-8BIT")
+      @answer && @answer.downcase.strip
     end
 
     def answered_correctly?(answer)
-      correct_answer.to_s.downcase.strip == answer.to_s.downcase
+      correct_answer.to_s.downcase.strip == answer
     end
 
     def points
       10
-    end
-
-    def penalty
-      - points / 10
     end
   end
 
@@ -118,7 +102,6 @@ module ExtremeStartup
 
   class TernaryMathsQuestion < Question
     def initialize(player, *numbers)
-      super(player)
       if numbers.any?
         @n1, @n2, @n3 = *numbers
       else
@@ -129,7 +112,6 @@ module ExtremeStartup
 
   class SelectFromListOfNumbersQuestion < Question
     def initialize(player, *numbers)
-      super(player)
       if numbers.any?
         @numbers = *numbers
       else
@@ -160,15 +142,15 @@ module ExtremeStartup
     def points
       40
     end
-  private
-    def should_be_selected(x)
-      x == @numbers.max
-    end
+    private
+      def should_be_selected(x)
+        x == @numbers.max
+      end
 
-    def candidate_numbers
-        (1..100).to_a
+      def candidate_numbers
+          (1..100).to_a
+      end
     end
-  end
 
   class AdditionQuestion < BinaryMathsQuestion
     def as_text
@@ -286,13 +268,17 @@ module ExtremeStartup
     end
 
     def is_square(x)
-      return true if x == 0
-      (Math.sqrt(x).round ** 2) == x
+      if (x ==0)
+        return true
+      end
+      (x % (Math.sqrt(x).round(4))) == 0
     end
 
     def is_cube(x)
-      return true if x == 0
-      (Math.cbrt(x).round ** 3) == x
+      if (x ==0)
+        return true
+      end
+      (x % (Math.cbrt(x).round(4))) == 0
     end
   end
 
@@ -314,40 +300,48 @@ module ExtremeStartup
    end
 
   class FibonacciQuestion < BinaryMathsQuestion
-
-    def which_number
+     def which_number
       return @n1 + 1000 if (@player.correct_answers(self.class) > 25)
       return @n1 + 200 if (@player.correct_answers(self.class) > 15)
       @n1 + 4
     end
+
     def as_text
-      "what is the #{which_number}th number in the Fibonacci sequence"
+      n = which_number
+      if (n > 20 && n % 10 == 1)
+        return "what is the #{n}st number in the Fibonacci sequence"
+      end
+      if (n > 20 && n % 10 == 2)
+        return "what is the #{n}nd number in the Fibonacci sequence"
+      end
+      return "what is the #{n}th number in the Fibonacci sequence"
     end
     def points
       50
     end
     def correct_answer
-      (@correct_answer ||= calculate)
-    end
-
-    def calculate
-      n = 1
-      n_minus_one = 1
-      i = 2
-      while i < which_number
-        next_n = n+n_minus_one
-        n_minus_one = n
-        n = next_n
-        i += 1
-      end
-      return n
+      n = @n1 + 4
+      a, b = 0, 1
+      n.times { a, b = b, a + b }
+      a
     end
   end
-  
-  class TriviaQuestions < Question
-    def initialize(player, question_bank)
-      super(player)
-      question = question_bank.sample
+
+  class GeneralKnowledgeQuestion < Question
+    class << self
+      def question_bank
+        [
+          ["who is the Prime Minister of Great Britain", "David Cameron"],
+          ["which city is the Eiffel tower in", "Paris"],
+          ["what currency did Spain use before the Euro", "peseta"],
+          ["what colour is a banana", "yellow"],
+          ["who played James Bond in the film Dr No", "Sean Connery"]
+        ]
+      end
+    end
+
+    def initialize(player)
+      question = GeneralKnowledgeQuestion.question_bank.sample
       @question = question[0]
       @correct_answer = question[1]
     end
@@ -358,19 +352,62 @@ module ExtremeStartup
 
     def correct_answer
       @correct_answer
-    end  
+    end
   end
 
-  class GeneralKnowledgeQuestion < TriviaQuestions
-    def initialize(player)
-      super(player, [
-          ["what is the twitter id of the organizer of this dojo", "jhannes"],
-          ["who is the Prime Minister of Great Britain", "David Cameron"],
-          ["which city is the Eiffel tower in", "Paris"],
-          ["what currency did Spain use before the Euro", "peseta"],
-          ["what colour is a banana", "yellow"],
-          ["who played James Bond in the film Dr No", "Sean Connery"]
-        ])
+  require 'yaml'
+  class AnagramQuestion < Question
+    def as_text
+      possible_words = [@anagram["correct"]] + @anagram["incorrect"]
+      %Q{which of the following is an anagram of "#{@anagram["anagram"]}": #{possible_words.shuffle.join(", ")}}
+    end
+
+    def initialize(player, *words)
+      if words.any?
+        @anagram = {}
+        @anagram["anagram"], @anagram["correct"], *@anagram["incorrect"] = words
+      else
+        anagrams = YAML.load_file(File.join(File.dirname(__FILE__), "anagrams.yaml"))
+        @anagram = anagrams.sample
+      end
+    end
+
+    def correct_answer
+      @anagram["correct"]
+    end
+  end
+
+  class ScrabbleQuestion < Question
+    def as_text
+      "what is the english scrabble score of #{@word}"
+    end
+
+    def initialize(player, word=nil)
+      if word
+        @word = word
+      else
+        @word = ["banana", "september", "cloud", "zoo", "ruby", "buzzword"].sample
+      end
+    end
+
+    def correct_answer
+      @word.chars.inject(0) do |score, letter|
+        score += scrabble_scores[letter.downcase]
+      end
+    end
+
+    private
+
+    def scrabble_scores
+      scores = {}
+      %w{e a i o n r t l s u}.each  {|l| scores[l] = 1 }
+      %w{d g}.each                  {|l| scores[l] = 2 }
+      %w{b c m p}.each              {|l| scores[l] = 3 }
+      %w{f h v w y}.each            {|l| scores[l] = 4 }
+      %w{k}.each                    {|l| scores[l] = 5 }
+      %w{j x}.each                  {|l| scores[l] = 8 }
+      %w{q z}.each                  {|l| scores[l] = 10 }
+      scores
     end
   end
 
@@ -503,4 +540,5 @@ module ExtremeStartup
       RememberMeConversation.new
     end
   end
+
 end

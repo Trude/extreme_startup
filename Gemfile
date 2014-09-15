@@ -1,7 +1,7 @@
-source :rubygems
-source 'http://localhost:8808'
+source 'https://rubygems.org'
 
-gem 'eventmachine', '1.0.0.beta.3'
+
+gem 'eventmachine'
 gem 'thin'
 gem 'sinatra'
 gem 'httparty'
@@ -12,4 +12,5 @@ gem 'cucumber'
 gem 'rack-test'
 gem 'capybara'
 gem 'json'
+gem "nyan-cat-formatter"
 

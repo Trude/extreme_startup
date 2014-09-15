@@ -2,51 +2,53 @@ require_relative 'question'
 require_relative 'questions/webshop_conversation'
 require_relative 'questions/flight_time'
 
+
 module ExtremeStartup
   class QuestionFactory
     attr_reader :round
 
-    def initialize(question_types = nil, round = 1)
-      @round = round
-      @question_types = question_types || [
+    def initialize
+      @round = 1
+      @question_types = [
         AdditionQuestion,
         MaximumQuestion,
-        MultiplicationQuestion, 
+        MultiplicationQuestion,
         SquareCubeQuestion,
         GeneralKnowledgeQuestion,
         PrimesQuestion,
         SubtractionQuestion,
-        FibonacciQuestion,  
+        FibonacciQuestion,
         PowerQuestion,
         AdditionAdditionQuestion,
         AdditionMultiplicationQuestion,
-        MultiplicationAdditionQuestion
+        MultiplicationAdditionQuestion,
+        AnagramQuestion,
+        ScrabbleQuestion
       ]
     end
 
     def next_question(player)
-      available_question_types = @question_types[0..(@round * 2 - 1)]
+      window_end = (@round * 2 - 1)
+      window_start = [0, window_end - 4].max
+      available_question_types = @question_types[window_start..window_end]
       available_question_types.sample.new(player)
     end
-    
+
     def advance_round
       @round += 1
-    end  
+    end
+
   end
 
   class WarmupQuestion < Question
     def initialize(player)
       @player = player
     end
+
     def correct_answer
       @player.name
     end
-    def score
-      return 0 if @player.correct_answers(self.class) > 1
-      return 10 if result == "correct"
-      return 0 if @player.wrong_answers(self.class) > 1
-      return -1
-    end
+
     def as_text
       "what is your name"
     end
@@ -79,17 +81,19 @@ module ExtremeStartup
       question_set.count { |q| player.correct_answers(q) == 0 } == 0
     end
   end
-  
-  class WarmupQuestionFactory < GatedQuestionFactory
-    def initialize
-      super([
-        [WarmupQuestion],
-        [AdditionQuestion,MaximumQuestion,RememberMeQuestion]])
+
+  class WarmupQuestionFactory
+    def next_question(player)
+      WarmupQuestion.new(player)
+    end
+
+    def advance_round
+      raise("please just restart the server")
     end
   end
 
   # TODO This should have several question sets, but it didn't advance to the last one!
-  
+
   class WorkshopQuestionFactory < GatedQuestionFactory
     def initialize
       super([
@@ -104,17 +108,18 @@ module ExtremeStartup
           DivisionQuestion,
           AdditionQuestion,
           MaximumQuestion,
-          MultiplicationQuestion, 
+          MultiplicationQuestion,
           SquareCubeQuestion,
           GeneralKnowledgeQuestion,
           PrimesQuestion,
           SubtractionQuestion,
-          FibonacciQuestion,  
-          #PowerQuestion,
-          #AdditionAdditionQuestion,
+          FibonacciQuestion,
+          PowerQuestion,
+          AdditionAdditionQuestion,
           AdditionMultiplicationQuestion,
           MultiplicationAdditionQuestion
         ]])
     end
   end
+
 end

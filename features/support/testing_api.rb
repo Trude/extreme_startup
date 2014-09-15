@@ -5,6 +5,7 @@ module TestingApi
 
   class TestablePlayer
     attr_reader :url, :name
+    attr_accessor :personal_page
 
     def initialize(name, content)
       @name, @content = name, content
@@ -24,7 +25,7 @@ module TestingApi
           map('/') { run app.new }
         end
       end
-      @url = "http://localhost:#{port}"
+      @url = "http://127.0.0.1:#{port}"
       Timeout.timeout(2) do
         until responsive?;end
       end
@@ -51,11 +52,16 @@ module TestingApi
 
   def create_player(name, content)
     @players ||= []
-    @players << TestablePlayer.new(name, content)
+    player = TestablePlayer.new(name, content)
+    @players << player
+    player
   end
 
   def enter_player(player)
-    post '/players', :name => player.name, :url => player.url 
+    post '/players', :name => player.name, :url => player.url
+    doc = Nokogiri.parse(last_response.body)
+    personal_page_link = doc.css('a').first
+    player.personal_page = personal_page_link['href']
   end
 
   def stub_correct_answer_to_be(correct_answer, points_awarded = 1)
@@ -64,13 +70,13 @@ module TestingApi
         actual_answer.to_s == correct_answer
       end
     end
-    
+
     ::ExtremeStartup::AdditionQuestion.class_eval do
-      define_method(:points) do 
+      define_method(:points) do
         points_awarded
       end
     end
-    
+
     ::ExtremeStartup::MaximumQuestion.class_eval do
       define_method(:answered_correctly?) do |actual_answer|
         actual_answer.to_s == correct_answer
