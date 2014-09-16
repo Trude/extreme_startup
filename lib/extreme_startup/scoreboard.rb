@@ -11,7 +11,8 @@ module ExtremeStartup
     end
 
     def increment_score_for(player, question)
-      increment = score(question, leaderboard_position(player))
+      player.answers_for_question(question.class, question.result)
+      increment = score(player, question, leaderboard_position(player))
       @scores[player.uuid] += increment
       if (increment > 0)
         @correct_tally[player.uuid] += 1
@@ -60,9 +61,9 @@ module ExtremeStartup
       end + 1
     end
 
-    def score(question, leaderboard_position)
+    def score(player, question, leaderboard_position)
       case question.result
-        when "correct"        then question.points
+        when "correct"        then (player.correct_answers(question.class) <= 10 ? question.points  : question.points/10)
         when "wrong"          then @lenient ? allow_passes(question, leaderboard_position) : penalty(question, leaderboard_position)
         when "error_response" then -50
         when "no_server_response"     then -20

@@ -146,13 +146,13 @@ module ExtremeStartup
       game_state.resume
     end
 
-    get %r{/withdraw/([\w]+)} do |uuid|
-      scoreboard.delete_player(players[uuid])
-      players.delete(uuid)
-      players_threads[uuid].kill
-      players_threads.delete(uuid)
-      redirect '/'
-    end
+    # get %r{/withdraw/([\w]+)} do |uuid|
+    #   scoreboard.delete_player(players[uuid])
+    #   players.delete(uuid)
+    #   players_threads[uuid].kill
+    #   players_threads.delete(uuid)
+    #   redirect '/'
+    # end
 
     post '/players' do
 

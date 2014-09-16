@@ -1,7 +1,7 @@
 require 'uuid'
 
 module ExtremeStartup
-  
+
   class LogLine
     attr_reader :id, :result, :points
     def initialize(id, result, points)
@@ -9,12 +9,12 @@ module ExtremeStartup
       @result = result
       @points = points
     end
-    
+
     def to_s
       "#{@id}: #{@result} - points awarded: #{@points}"
     end
   end
-  
+
   class Player
     attr_reader :name, :url, :uuid, :log
 
@@ -25,7 +25,7 @@ module ExtremeStartup
       end
     end
 
-    def initialize(params = {})  
+    def initialize(params = {})
       @name = params['name']
       @url = params['url']
       @uuid = Player.generate_uuid
@@ -41,22 +41,22 @@ module ExtremeStartup
     def to_s
       "#{name} (#{@uuid}: #{url})"
     end
-  
-   def answers_for_question(question_class, result)
-    if result == "correct"
-      @correct_answers[question_class] += 1
-    elsif result == "wrong"
+
+    def answers_for_question(question_class, result)
+      if result == "correct"
+        @correct_answers[question_class] += 1
+      elsif result == "wrong"
+        @wrong_answers[question_class] += 1
+      end
+    end
+    def correct_answers(question_class)
+      @correct_answers[question_class]
+    end
+    def correct_answer_count
+      @correct_answers.values.count { |v| v > 0 }
+    end
+    def wrong_answers(question_class)
       @wrong_answers[question_class] += 1
-     end
-   end
-   def correct_answers(question_class)
-     @correct_answers[question_class]
-   end
-   def correct_answer_count
-     @correct_answers.values.count { |v| v > 0 }
-   end
-   def wrong_answers(question_class)
-    @wrong_answers[question_class] += 1
-   end
+    end
   end
 end

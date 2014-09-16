@@ -2,5 +2,5 @@ require 'rubygems'
 require 'sinatra'
 
 get '/' do
-  "x"
+  "7"
 end

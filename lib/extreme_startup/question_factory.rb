@@ -55,7 +55,9 @@ module ExtremeStartup
   end
 
   class GatedQuestionFactory
+    attr_reader :round
     def initialize(question_sets)
+      @round = -1
       @question_sets = question_sets
       @player_question_set_index = Hash.new(0)
     end
@@ -78,7 +80,7 @@ module ExtremeStartup
       @question_sets[@player_question_set_index[player]]
     end
     def has_answered_all_questions(player, question_set)
-      question_set.count { |q| player.correct_answers(q) == 0 } == 0
+      question_set.count { |q| player.correct_answers(q) == 0} == 0
     end
   end
 

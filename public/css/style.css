@@ -3,6 +3,7 @@ h1 {color:blue}
 .score {color:blue}
 
 .left { float: left; width: 500px; }
+.center{ float: left; width: 500px; padding-left: 60px;}
 .right{ float: right; width: 500px; }
 
 li { display: block; }
