@@ -18,6 +18,6 @@ WebServer.settings.question_factory = ExtremeStartup::GatedQuestionFactory.new([
   simple_round,
   simple_round + medium_round,
   medium_round + medium_plus_round + advanced_round,
-  medium_round + advanced_round + hard_round
+  medium_plus_round + advanced_round + hard_round
 ])
 WebServer.run!

@@ -1,5 +1,8 @@
+# encoding: utf-8
 require 'set'
 require 'prime'
+
+
 
 module ExtremeStartup
   class Question
@@ -379,14 +382,14 @@ module ExtremeStartup
 
   class ScrabbleQuestion < Question
     def as_text
-      "what is the english scrabble score of #{@word}"
+      "what is the norwegian scrabble score of #{@word}"
     end
 
     def initialize(player, word=nil)
       if word
         @word = word
       else
-        @word = ["banana", "september", "cloud", "zoo", "ruby", "buzzword"].sample
+        @word = ["banan", "september", "jordbær", "sau", "ljå", "øye"].sample
       end
     end
 
@@ -400,13 +403,14 @@ module ExtremeStartup
 
     def scrabble_scores
       scores = {}
-      %w{e a i o n r t l s u}.each  {|l| scores[l] = 1 }
-      %w{d g}.each                  {|l| scores[l] = 2 }
-      %w{b c m p}.each              {|l| scores[l] = 3 }
-      %w{f h v w y}.each            {|l| scores[l] = 4 }
-      %w{k}.each                    {|l| scores[l] = 5 }
-      %w{j x}.each                  {|l| scores[l] = 8 }
-      %w{q z}.each                  {|l| scores[l] = 10 }
+      %w{a d e i l n r s t}.each  {|l| scores[l] = 1 }
+      %w{f g k m o}.each          {|l| scores[l] = 2 }
+      %w{h}.each                  {|l| scores[l] = 3 }
+      %w{b j p u v å}.each        {|l| scores[l] = 4 }
+      %w{ø}.each                  {|l| scores[l] = 5 }
+      %w{y æ}.each                {|l| scores[l] = 6 }
+      %w{w}.each                  {|l| scores[l] = 8 }
+      %w{c}.each                  {|l| scores[l] = 10 }
       scores
     end
   end

@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'sinatra/base'
 require 'httparty'
 require 'uuid'
@@ -8,6 +9,8 @@ require_relative 'game_state'
 require_relative 'scoreboard'
 require_relative 'player'
 require_relative 'quiz_master'
+
+
 
 Thread.abort_on_exception = true
 
