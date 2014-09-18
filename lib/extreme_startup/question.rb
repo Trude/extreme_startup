@@ -322,11 +322,22 @@ module ExtremeStartup
     def points
       50
     end
+
     def correct_answer
-      n = @n1 + 4
-      a, b = 0, 1
-      n.times { a, b = b, a + b }
-      a
+      (@correct_answer ||= calculate)
+    end
+
+    def calculate
+      n = 1
+      n_minus_one = 1
+      i = 2
+      while i < which_number
+        next_n = n+n_minus_one
+        n_minus_one = n
+        n = next_n
+        i += 1
+      end
+      return n
     end
   end
 
@@ -389,7 +400,7 @@ module ExtremeStartup
       if word
         @word = word
       else
-        @word = ["banan", "september", "jordbær", "sau", "ljå", "øye"].sample
+        @word = ["banan", "september", "jordbær", "sau", "ljå", "øye", "sebra", "steria"].sample
       end
     end
 
